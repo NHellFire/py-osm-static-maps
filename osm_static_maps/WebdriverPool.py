@@ -3,6 +3,7 @@ from multiprocessing import Queue
 from shutil import which
 
 from selenium import webdriver
+from selenium.webdriver.common.utils import free_port
 from selenium.webdriver.firefox.service import Service
 
 logging.basicConfig(level=logging.INFO)
@@ -20,10 +21,9 @@ class WebdriverPool:
             webdriver_args["service"] = Service(executable_path=which("geckodriver"))
 
         # Start workers
-        basePort = webdriver_args["service"].port
         for i in range(workers):
             logging.info(f"Starting worker {i}")
-            webdriver_args["service"].port = basePort + i
+            webdriver_args["service"].port = free_port()
             wd = webdriver.Firefox(**webdriver_args)
             wd._pool_id = i
             self.all.append(wd)
