@@ -129,16 +129,13 @@
             {% endif %}
 
             {% if vectorserverUrl %}
-                {% if vectorserverToken == "no-token" %}
-                    // If we've not got a token, assume non-mapbox tileserver
-                    // This will improve loading times by not needlessly hitting mapbox
-                    mapboxgl.baseApiUrl = null;
-                {% endif %}
-                L.mapboxGL({
-                    accessToken: '{{ vectorserverToken }}',
-                    style: '{{ vectorserverUrl }}',
-                    performanceMetricsCollection: false
-                }).addTo(map).getMapboxMap().on("idle", function() { mapReady = true; });
+                var parsedUrl = new URL("{{ vectorserverUrl }}");
+                if (!parsedUrl.searchParams.has("access_token") && "no-token" != "{{ vectorserverToken }}") {
+                    parsedUrl.searchParams.set("access_token", "{{ vectorserverToken }}");
+                }
+                L.maplibreGL({
+                    style: parsedUrl.toString()
+                }).addTo(map).getMaplibreMap().on("idle", function() { mapReady = true; });
             {% else %}
                 {% if tileserverUrl %}
                     L.tileLayer(
