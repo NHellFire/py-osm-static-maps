@@ -35,21 +35,14 @@ class WebdriverPool:
             service = FirefoxService
             service_args["executable_path"] = which("geckodriver")
 
+        self._driver = driver
+        self._driver_args = driver_args
 
-        # Start workers
-        for i in range(workers):
-            logging.info(f"Starting worker {i}")
-            wd_args = webdriver_args.copy()
-            wd_args["service"] = service(**service_args)
-            wd_args["options"] = options()
-            options_callback(wd_args["options"])
+        self._options = options
+        self._options_callback = options_callback
+        self._service = service
+        self._service_args = service_args
 
-            wd = webdriver.Firefox(**wd_args)
-            wd._pool_id = i
-            self.all.append(wd)
-            self.spare.put(wd._pool_id)
-
-        logging.info("Started %d workers", self.spare.qsize())
 
     def acquire(self):
         if self.timeout == 0:
@@ -64,3 +57,32 @@ class WebdriverPool:
 
     def options_callback(self, options):
         options.add_argument("--headless")
+
+    def start(self):
+        for i in range(self.num_workers):
+            logging.info("Starting worker %d", i)
+            wd_args = self._driver_args.copy()
+            wd_args["service"] = self._service(**self._service_args)
+            wd_args["options"] = self._options()
+            self._options_callback(wd_args["options"])
+
+            wd = webdriver.Firefox(**wd_args)
+            wd._pool_id = i
+            self.all.append(wd)
+            self.spare.put(wd._pool_id)
+
+        logging.info("Started %d workers", self.spare.qsize())
+
+
+    def stop(self):
+        for i in range(self.num_workers):
+            logging.info("Stopping worker %d", i)
+            try:
+                self.all[i].quit()
+            except Exception as e:
+                # TODO: Check which exceptions are returned on dead process so we can ignore the correct ones
+                logging.error(format_exc())
+
+        logging.info("Stopped %d workers", self.num_workers)
+        self.all = []
+        self.spare = Queue()
