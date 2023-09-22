@@ -25,7 +25,7 @@ def serve(args):
     # Store a copy for use when missing from the request
     default_opts = vars(args)
 
-    pool = WebdriverPool(timeout=args.timeout / 1000, workers=4)
+    pool = WebdriverPool(timeout=args.timeout / 1000, workers=args.jobs)
     pool.start()
 
     app.run(host="0.0.0.0", port=args.port, use_reloader=False)

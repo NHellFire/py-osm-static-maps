@@ -12,6 +12,12 @@ def compressimage(im, cmdline):
 
     return im
 
+class JobsAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        if values < 1:
+            parser.error(f"Minimum for {option_string} is 1")
+        setattr(namespace, self.dest, values)
+
 def get_argparser():
     parser = argparse.ArgumentParser(
         prog="osmsm",
@@ -48,9 +54,10 @@ def get_argparser():
 #    parser.add_argument("-e", "--haltOnConsoleError", help="throw error if there is any console.error(...) when rendering the map image", action="store_true")
 
     subparser = parser.add_subparsers(dest="command", help=argparse.SUPPRESS)
-    serveparser = subparser.add_parser("serve", help="Run as web server", usage=argparse.SUPPRESS, add_help=False)
-    serveparser.add_argument("-h", "--help", help=argparse.SUPPRESS, action="store_true")
-    serveparser.add_argument("-p", "--port", help="Port number to listen on", action="store", default=3000, type=int)
+    serveparser = subparser.add_parser("serve", help="Run as web server", add_help=False)
+    serveparser.add_argument("-h", "--help", help=argparse.SUPPRESS, action="store_true", dest="serve_help")
+    serveparser.add_argument("-p", "--port", help="Port number to listen on (default: 3000)", action="store", default=3000, type=int)
+    serveparser.add_argument("-j", "--jobs", help="Number of browsers for processing requests (default: 4)", action=JobsAction, default=4, type=int)
 
     return parser
 

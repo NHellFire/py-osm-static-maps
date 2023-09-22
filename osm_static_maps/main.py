@@ -18,14 +18,18 @@ def main():
 
     #print(args)
 
-    if "help" in args and args.help:
+    if vars(args).get("help") or vars(args).get("serve_help"):
         print(parser.format_help())
         actions = [ action for action in parser._actions if isinstance(action, argparse._SubParsersAction) ]
         if actions:
             print("commands:")
             for action in actions:
                 for choice, subparser in action.choices.items():
-                    print(f"  {choice} [options]\n")
+                    usage = " ".join(subparser.format_usage().split()[3:])
+                    if not usage:
+                        usage = "[options]"
+
+                    print(f"  {choice} {usage}")
                     for line in subparser.format_help().splitlines()[1:]:
                         print(f"  {line}")
 
