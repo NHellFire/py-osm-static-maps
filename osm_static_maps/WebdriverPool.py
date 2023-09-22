@@ -3,28 +3,48 @@ from multiprocessing import Queue
 from shutil import which
 
 from selenium import webdriver
-from selenium.webdriver.common.utils import free_port
-from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.firefox.service import Service as FirefoxService
 
 logging.basicConfig(level=logging.INFO)
 
 class WebdriverPool:
-    def __init__(self, workers=4, timeout=None, webdriver_args={}):
+    def __init__(self, workers=4, timeout=None, driver=None, driver_args={}, service=None, service_args={}, options=None, options_callback=None, webdriver_args={}):
         self.num_workers = workers
         self.all = []
         self.spare = Queue()
         self.timeout = timeout
 
+        # Backwards compatibility
+        if webdriver_args:
+           driver_args = webdriver_args
+
+        # Use headless Firefox as the default
+        if not driver:
+            driver = webdriver.Firefox
+
+        if not options:
+            options = FirefoxOptions
+
+        if not options_callback:
+            options_callback = self.options_callback
+
         # Newer versions of selenium depend on selenium manager to find drivers,
-        # So, use shuti.which in case it's not available
-        if not isinstance(webdriver_args.get("service", None), Service):
-            webdriver_args["service"] = Service(executable_path=which("geckodriver"))
+        # So, use shutil.which in case it's not available
+        if not service:
+            service = FirefoxService
+            service_args["executable_path"] = which("geckodriver")
+
 
         # Start workers
         for i in range(workers):
             logging.info(f"Starting worker {i}")
-            webdriver_args["service"].port = free_port()
-            wd = webdriver.Firefox(**webdriver_args)
+            wd_args = webdriver_args.copy()
+            wd_args["service"] = service(**service_args)
+            wd_args["options"] = options()
+            options_callback(wd_args["options"])
+
+            wd = webdriver.Firefox(**wd_args)
             wd._pool_id = i
             self.all.append(wd)
             self.spare.put(wd._pool_id)
@@ -41,3 +61,6 @@ class WebdriverPool:
 
     def release(self, webdriver):
         return self.spare.put(webdriver._pool_id)
+
+    def options_callback(self, options):
+        options.add_argument("--headless")

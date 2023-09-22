@@ -2,7 +2,6 @@ import traceback
 
 from flask import Flask, request, make_response
 from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.firefox.options import Options as FirefoxOptions
 import threading
 import queue
 
@@ -26,9 +25,7 @@ def serve(args):
     # Store a copy for use when missing from the request
     default_opts = vars(args)
 
-    options = FirefoxOptions()
-    options.add_argument("--headless")
-    pool = WebdriverPool(timeout=args.timeout / 1000, webdriver_args={"options": options}, workers=4)
+    pool = WebdriverPool(timeout=args.timeout / 1000, workers=4)
 
     app.run(host="0.0.0.0", port=args.port, use_reloader=False)
 
