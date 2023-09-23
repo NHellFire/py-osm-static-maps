@@ -35,7 +35,7 @@ def serve(args):
 def handler():
     global pool
 
-    opts = request.data if request.method == "POST" else request.args
+    opts = request.form if request.method == "POST" else request.args
     opts = opts.to_dict()
 
     filename = opts.get("f", opts.get("geojsonfile", None))
@@ -82,6 +82,6 @@ def health():
 @app.route("/dynamic")
 def dynamic():
     request.parameter_storage_class = MultiDict
-    opts = request.data if request.method == "POST" else request.args
+    opts = request.form if request.method == "POST" else request.args
     opts["renderToHtml"] = True
     return handler()
