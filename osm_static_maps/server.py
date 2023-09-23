@@ -2,6 +2,7 @@ import traceback
 
 from flask import Flask, request, make_response
 from selenium.common.exceptions import TimeoutException
+from werkzeug.datastructures import MultiDict
 import threading
 import queue
 
@@ -80,6 +81,7 @@ def health():
 
 @app.route("/dynamic")
 def dynamic():
+    request.parameter_storage_class = MultiDict
     opts = request.data if request.method == "POST" else request.args
-    opts = opts.to_dict()
-    return "Yay"
+    opts["renderToHtml"] = True
+    return handler()
