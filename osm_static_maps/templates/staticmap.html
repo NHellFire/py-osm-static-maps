@@ -128,6 +128,15 @@
                 map.fitBounds(geojsonlayer.getBounds(), {maxZoom: maxZoom});
             {% endif %}
 
+            {% if zoom %}
+                map.setZoom({{ zoom }}, {animate: false});
+            {% else %}
+                {% if geojson %}
+                {% else %}
+                    map.setZoom(maxZoom, {animate: false})
+                {% endif %}
+            {% endif %}
+
             {% if vectorserverUrl %}
                 var parsedUrl = new URL("{{ vectorserverUrl }}");
                 if (!parsedUrl.searchParams.has("access_token") && "no-token" != "{{ vectorserverToken }}") {

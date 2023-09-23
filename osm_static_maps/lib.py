@@ -33,11 +33,14 @@ def osmsm(opts, driver=None):
     # for the webserver, and still set them for the library
     default_opts = vars(get_argparser().parse_args([]))
     for k,v in default_opts.items():
+        # Don't apply default zoom when we have geojson data, it'll break fitBounds
+        if k == "zoom" and (opts.get("geojsonfile") or opts.get("geojson")):
+            continue
         if k not in opts:
             opts[k] = v
 
-    if opts.get("zoom") is None:
-        opts["zoom"] = 12 if opts.get("vectorserverUrl") is not None else 20
+    if opts.get("maxZoom") is None:
+        opts["maxZoom"] = 20 if opts.get("vectorserverUrl") is not None else 17
 
     if not driver:
         service = webdriver.firefox.service.Service(executable_path=which("geckodriver"))

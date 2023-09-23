@@ -43,6 +43,9 @@ def handler():
 
     # Set missing options to defaults
     for k,v in default_opts.items():
+        # Don't apply default zoom when we have geojson data, it'll break fitBounds
+        if k == "zoom" and (filename or opts.get("geojson")):
+            continue
         if k not in opts:
             opts[k] = v
 
