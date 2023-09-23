@@ -2,12 +2,14 @@ from selenium import webdriver
 from selenium.webdriver.support.wait import WebDriverWait
 from base64 import b64encode
 from PIL import Image
-from io import BytesIO
+from io import BytesIO, IOBase
 from shutil import which
 
 from jinja2 import Template
 
 from werkzeug.exceptions import BadRequest
+
+import requests
 
 if __package__:
     from .utils import staticFiles, compressimage, get_argparser
@@ -38,6 +40,19 @@ def osmsm(opts, driver=None):
             continue
         if k not in opts:
             opts[k] = v
+
+    # Fetch external geojson
+    if opts.get("geojsonfile"):
+        if opts.get("geojson"):
+            raise BadRequest(description="Only geojson OR geojsonfile can be specified, not both")
+
+        filename = opts.get("geojsonfile")
+        if isinstance(filename, str):
+            r = requests.get(filename, timeout=5)
+            r.raise_for_status()
+            opts["geojson"] = r.text
+        elif isinstance(filename, IOBase):
+            opts["geojson"] = filename.read()
 
     if opts.get("maxZoom") is None:
         opts["maxZoom"] = 20 if opts.get("vectorserverUrl") is not None else 17

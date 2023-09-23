@@ -40,6 +40,7 @@ def handler():
     filename = opts.get("f", opts.get("geojsonfile", None))
     if filename and not filename.startswith("http://") and not filename.startswith("https://"):
         return "'geojsonfile' parameter must be a URL", 400
+    opts["filename"] = filename
 
     # Set missing options to defaults
     for k,v in default_opts.items():

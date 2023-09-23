@@ -5,7 +5,8 @@ from setuptools import setup, find_packages
 requires=[
     "selenium",
     "flask",
-    "Pillow"
+    "Pillow",
+    "requests"
 ]
 
 setup(
