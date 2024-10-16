@@ -3,6 +3,7 @@ import glob
 from setuptools import setup, find_packages
 
 requires=[
+    "setuptools",
     "selenium",
     "flask",
     "Pillow",
