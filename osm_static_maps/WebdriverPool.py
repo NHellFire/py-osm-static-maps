@@ -1,5 +1,5 @@
 import logging
-from multiprocessing import Queue
+from multiprocessing import Manager
 from shutil import which
 
 from selenium import webdriver
@@ -12,7 +12,7 @@ class WebdriverPool:
     def __init__(self, workers=4, timeout=None, driver=None, driver_args={}, service=None, service_args={}, options=None, options_callback=None, webdriver_args={}):
         self.num_workers = workers
         self.all = []
-        self.spare = Queue()
+        self.spare = Manager().Queue()
         self.timeout = timeout
 
         # Backwards compatibility
